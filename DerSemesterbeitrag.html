@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Magazin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- jQuery & Turn.js -->
+  <script src="jquery.js"></script>
+  <script src="turn2.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #flipbook {
+      width: 100%;
+      max-width: 4962px;
+      height: 3508px;
+      margin: auto;
+    }
+
+    .page {
+      width: 2481px;
+      height: 3508px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-color: white;
+    }
+
+    .nav-zone {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      width: 20%;
+      z-index: 1000;
+    }
+
+    .left-zone {
+      left: 0;
+    }
+
+    .right-zone {
+      right: 0;
+    }
+
+    @media (max-width: 768px) {
+      .nav-zone {
+        width: 30%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="flipbook"></div>
+  <div class="nav-zone left-zone"></div>
+  <div class="nav-zone right-zone"></div>
+
+  <script>
+    const totalPages = 32;
+
+    const pageElements = Array.from({ length: totalPages }, (_, i) => {
+      const pageNum = i + 1;
+      return `<div class="page" style="background-image: url('images/Seite${pageNum}.png');"></div>`;
+    });
+
+    $(document).ready(function () {
+      $('#flipbook').turn({
+        width: 4962,
+        height: 3508,
+        autoCenter: true,
+        acceleration: true,
+        elevation: 50,
+        gradients: true,
+        duration: 800,
+        pages: totalPages,
+        when: {
+          turning: function (event, page) {
+            lazyLoad(page);
+            lazyLoad(page - 1);
+            lazyLoad(page + 1);
+          }
+        }
+      });
+
+      function lazyLoad(page) {
+        if (page < 1 || page > totalPages) return;
+        if (!$('#flipbook').turn('hasPage', page)) {
+          $('#flipbook').turn('addPage', $(pageElements[page - 1]), page);
+        }
+      }
+
+      // Lade erste Seiten vorab
+      lazyLoad(1);
+      lazyLoad(2);
+
+      // Navigation durch Antippen/Klick
+      $('.left-zone').on('click touchstart', () => {
+        $('#flipbook').turn('previous');
+      });
+
+      $('.right-zone').on('click touchstart', () => {
+        $('#flipbook').turn('next');
+      });
+    });
+
+    // Zoom auf Mobilgeräten erlauben
+    document.addEventListener('gesturestart', function (e) {
+      e.preventDefault();
+    });
+  </script>
+</body>
+</html>
